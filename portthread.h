@@ -12,10 +12,15 @@ class PortThread : public QThread
 public:
 	PortThread();
 
+public slots:
+	void SetComNum(QString);
+
 signals:
 	void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
+	void PortError(QString);
 
 private:
+	QString comnum_str;
 	unsigned short CRC16(unsigned int *, unsigned short, unsigned short);
 };
 

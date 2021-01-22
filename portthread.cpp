@@ -35,8 +35,29 @@ unsigned short PortThread::CRC16(unsigned int * inp_Arr, unsigned short byte_len
 	return crc;
 }
 
+void PortThread::SetComNum(QString comnumber)
+{
+	comnum_str = comnumber;
+}
+
 void PortThread::run()
 {
+	// Создадим порт
+	QSerialPort * Port1;
+	Port1 = new QSerialPort();
+	// Настроим порт
+	Port1->setBaudRate(QSerialPort::Baud115200, QSerialPort::AllDirections);
+	// Выберем порт
+	Port1->setPortName(comnum_str);
+
+	// Откроем порт, если можно
+	if (!Port1->open(QSerialPort::ReadOnly))
+	{
+		// Если нельзя, выдадим ошибку
+		emit PortError(comnum_str + ". " + Port1->errorString());
+		return;
+	}
+
 	QDateTime curdatetime = QDateTime::currentDateTime();
 	QFile * outputplot = new QFile(static_cast<QString>("out_" + curdatetime.toString("yyyy-MM-dd_HHmmss") + ".log"));
 
@@ -44,22 +65,6 @@ void PortThread::run()
 
 	QTextStream outputplot_ts(outputplot);
 	outputplot_ts << "x\ty\ty_l\tdelta\n";
-
-	// Создадим порт
-	QSerialPort * Port1;
-	Port1 = new QSerialPort();
-	// Настроим порт
-	Port1->setBaudRate(QSerialPort::Baud115200, QSerialPort::AllDirections);
-	// Выберем порт
-	Port1->setPortName("COM3");
-
-	// Откроем порт, если можно
-	if (!Port1->open(QSerialPort::ReadOnly))
-	{
-		// Если нельзя, выдадим ошибку (надо добавить окно ошибки)
-		Port1->error();
-		return;
-	}
 
 	QByteArray read_arr;
 
@@ -109,7 +114,6 @@ void PortThread::run()
 
 	outputplot->close();
 	outputplot->deleteLater();
-
 	Port1->close();
 }
 

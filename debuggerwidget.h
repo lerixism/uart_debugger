@@ -22,6 +22,10 @@ public slots:
     void updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
 	void openBTN();
 	void closeBTN();
+	void OpenError(QString);
+
+signals:
+	void SetComNumber(QString);
 
 private:
 	Ui::DebuggerWidget *ui;
