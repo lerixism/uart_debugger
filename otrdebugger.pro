@@ -28,11 +28,11 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         debuggerwidget.cpp \
-    portworker.cpp
+    portthread.cpp
 
 HEADERS += \
     debuggerwidget.h \
-    portworker.h
+    portthread.h
 
 FORMS += \
         debuggerwidget.ui

@@ -2,7 +2,9 @@
 #define DEBUGGERWIDGET_H
 
 #include "ui_debuggerwidget.h"
-#include "portworker.h"
+#include "portthread.h"
+#include <QObject>
+#include <QWidget>
 
 namespace Ui {
 class DebuggerWidget;
@@ -17,15 +19,13 @@ public:
     ~DebuggerWidget();
 
 public slots:
-    void StopThread();
     void updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
 	void openBTN();
 	void closeBTN();
 
 private:
-    Ui::DebuggerWidget *ui;
-    QThread *portthread;
-    PortWorker *portworker;
+	Ui::DebuggerWidget *ui;
+	PortThread *portthread;
 };
 
 #endif // DEBUGGERWIDGET_H

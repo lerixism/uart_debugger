@@ -28,10 +28,10 @@
   <property name="windowTitle">
    <string>DebuggerWidget</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>8</x>
+     <x>10</x>
      <y>10</y>
      <width>381</width>
      <height>281</height>
