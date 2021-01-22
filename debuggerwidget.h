@@ -22,7 +22,7 @@ public slots:
     void updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
 	void openBTN();
 	void closeBTN();
-	void OpenError(QString);
+	void HandleError(QString);
 
 signals:
 	void SetComNumber(QString);

@@ -6,12 +6,14 @@ DebuggerWidget::DebuggerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DebuggerWidget)
 {
+	// Запуск интерфейса
     ui->setupUi(this);
 
-	// Включение-отключение кнопок
-	connect(ui->OPNButton, SIGNAL(clicked()), this, SLOT(openBTN()));
-	connect(ui->CLSButton, SIGNAL(clicked()), this, SLOT(closeBTN()));
+	// Обработка нажатия кнопок Открыть - Закрыть
+	connect(ui->OPNButton, &QPushButton::clicked, this, &DebuggerWidget::openBTN);
+	connect(ui->CLSButton, &QPushButton::clicked, this, &DebuggerWidget::closeBTN);
 
+	// Деактивируем кнопку Закрыть
 	ui->CLSButton->setEnabled(false);
 }
 
@@ -27,50 +29,72 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 	// Текстовый поток для управления строкой
 	QTextStream ts(&str);
 	// Запишем в поток содержимое
-    ts << "Time is " << second << " seconds.\n\nFreeCPU is " << freecpucnt;
+	ts << tr("Time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt;
 	// Условная индикация ошибки DSP
-	if (DSPerrcnt) ts << ".\n\nDSP error is present.";
-	else ts << ".\n\nDSP error is absent.";
+	if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
+	else ts << tr(".\n\nDSP error is absent.");
 
 	ui->outputText->setText(str);
 }
 
 void DebuggerWidget::openBTN()
 {
+	// Деактивируем кнопку Открыть
 	ui->OPNButton->setEnabled(false);
+	// Активируем кнопку Закрыть
 	ui->CLSButton->setEnabled(true);
+	// Деактивируем поле для номера порта
 	ui->comNUM->setEnabled(false);
 
+	// Создадим объект потока
 	portthread = new PortThread();
 
+	// Окончание работы потока должно приводить к уничтожению объекта потока
 	connect(portthread, &QThread::finished, portthread, &QThread::deleteLater);
-	connect(portthread, &PortThread::PortError, this, &DebuggerWidget::OpenError);
+	// Обработчик ошибок от потока
+	connect(portthread, &PortThread::ThrowError, this, &DebuggerWidget::HandleError);
+	// Передача номера порта с формы в поток
 	connect(this, &DebuggerWidget::SetComNumber, portthread, &PortThread::SetComNum);
 
+	// Запуск потока (после выполнения exec выполняется run, перегруженная в PortThread)
 	portthread->start();
 
+	// Поток запустили - можно сообщить ему выбранный номер порта
 	emit SetComNumber(ui->comNUM->text());
 }
 
 void DebuggerWidget::closeBTN()
 {
+	// Активируем кнопку Открыть
 	ui->OPNButton->setEnabled(true);
+	// Деактивируем кнопку Закрыть
 	ui->CLSButton->setEnabled(false);
+	// Активируем поле для номера порта
 	ui->comNUM->setEnabled(true);
 
+	// Остановим поток прерыванием (оно не снимается, поэтому поток придётся уничтожить)
 	portthread->requestInterruption();
+	// Уничтожаем поток (deleteLater(), чтобы он успел доработать)
 	portthread->deleteLater();
+	// На всякий случай ждём пока он закончит работу
 	portthread->wait();
 }
 
-void DebuggerWidget::OpenError(QString errorstr)
+void DebuggerWidget::HandleError(QString errorstr)
 {
+	// Активируем кнопку Открыть
 	ui->OPNButton->setEnabled(true);
+	// Деактивируем кнопку Закрыть
 	ui->CLSButton->setEnabled(false);
+	// Активируем поле для номера порта
 	ui->comNUM->setEnabled(true);
 
+	// Для уведомления пользователя нужно окно сообщений
 	QMessageBox msgBox;
-	msgBox.setText(tr("Error with port: ") + errorstr);
+	// Текст ошибки
+	msgBox.setText(tr("Error: ") + errorstr);
+	// Иконка сообщения - критичное (красный восклицательный знак)
 	msgBox.setIcon(QMessageBox::Critical);
+	// Покажем окно пользователю
 	msgBox.exec();
 }

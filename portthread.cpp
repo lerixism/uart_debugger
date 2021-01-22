@@ -4,7 +4,6 @@
 #include <QTextStream>
 #include <QSerialPort>
 #include <QDateTime>
-#include <QMessageBox>
 
 PortThread::PortThread()
 {
@@ -37,6 +36,7 @@ unsigned short PortThread::CRC16(unsigned int * inp_Arr, unsigned short byte_len
 
 void PortThread::SetComNum(QString comnumber)
 {
+	// Запишем принятый номер порта в переменную потока
 	comnum_str = comnumber;
 }
 
@@ -54,66 +54,94 @@ void PortThread::run()
 	if (!Port1->open(QSerialPort::ReadOnly))
 	{
 		// Если нельзя, выдадим ошибку
-		emit PortError(comnum_str + ". " + Port1->errorString());
+		emit ThrowError(comnum_str + ". " + Port1->errorString());
 		return;
 	}
 
+	// Считаем время системы для лог-файла
 	QDateTime curdatetime = QDateTime::currentDateTime();
+	// Составив имя файла, создадим объект для него
 	QFile * outputplot = new QFile(static_cast<QString>("out_" + curdatetime.toString("yyyy-MM-dd_HHmmss") + ".log"));
 
-	if (!outputplot->open(QIODevice::WriteOnly | QIODevice::Text)) QMessageBox::information(nullptr, tr("Call to file error"), outputplot->errorString());
+	// Откроем файл для записи лога, если можно
+	if (outputplot->open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		// Если нельзя, выдадим ошибку
+		emit ThrowError(outputplot->fileName() + ". " + outputplot->errorString());
+		// Закроем порт
+		Port1->close();
+		return;
+	}
 
+	// Поток для простой работы с лог-файлом
 	QTextStream outputplot_ts(outputplot);
+	// Шапка лог-файла
 	outputplot_ts << "x\ty\ty_l\tdelta\n";
 
+	// Массив для считывания из порта
 	QByteArray read_arr;
 
 	// Начинаем работу с портом
-	// Работаем пока не придёт прерывание от кнопки стоп
+	// Работаем пока не придёт прерывание для потока от кнопки стоп
 	while (!QThread::currentThread()->isInterruptionRequested())
 	{
 		// Ждём приёма данных
 		if (Port1->waitForReadyRead(-1))
 		{
 			// Чтение порта
+			// Если в порту меньше 24 байтов, не интересно, ждём пока больше придёт
 			if (Port1->bytesAvailable() < 24) continue;
+			// Считываем всё
 			read_arr = Port1->readAll();
 
 			// Перепишем данные в 4-байтный массив
 			unsigned int i_read_arr[32];
 
+			// Начиная с крайнего возможного байта концовки ищем эту самую концовку (0x5a5a)
 			for (int byte_num = 17; byte_num < read_arr.size(); byte_num++)
-			{
 				if ((static_cast<int>(read_arr[byte_num-1]) == 0x5a) && (static_cast<int>(read_arr[byte_num]) == 0x5a))
-				{
+					// Концовку нашли, перепишем её в 4-байтный массив
 					for (int i = 0; i < 32; i++) i_read_arr[i] = static_cast<int>(read_arr[byte_num - 17 + i]) & 0xff;
-				}
-			}
 
+			// Считаем принятую контрольную сумму
 			unsigned int crc_in = i_read_arr[18] | (i_read_arr[19] << 8);
+			// Рассчитаем контрольную сумму принятой посылки
 			unsigned int crc_calc = CRC16(i_read_arr, 18, 0);
+
+			// Если они совпали, посылку можно обработать
 			if (crc_in == crc_calc)
 			{
+				// Счётчик загруженности процессора
 				unsigned int freecpucnt = (i_read_arr[3] << 24) | (i_read_arr[4] << 16) | (i_read_arr[5] << 8) | i_read_arr[6];
 
+				// Расчитанные значения проверочной формулы
+				// Целочисленные значения
 				unsigned int ui_x_axis = (i_read_arr[8] << 24) | (i_read_arr[9] << 16) | (i_read_arr[10] << 8) | i_read_arr[11];
 				unsigned int ui_y_axis = (i_read_arr[12] << 24) | (i_read_arr[13] << 16) | (i_read_arr[14] << 8) | i_read_arr[15];
+
+				// Для расшифровки нужно считать их как вещественные
 				float *f_x_axis, *f_y_axis;
 				f_x_axis = reinterpret_cast<float*>(&ui_x_axis);
 				f_y_axis = reinterpret_cast<float*>(&ui_y_axis);
 
+				// Расчёт формулы по принятому значению абсциссы
 				// 	y = 4.0 * m.cos(x) + 0.5 * m.sin(10.0*x) - 0.005 * x**2 + 50.0 * m.atan(x)
 				float l_f_y_axis = 4.0f * cosf(*f_x_axis) + 0.5f * sinf(10.0f * *f_x_axis) - 0.005f * *f_x_axis * *f_x_axis;
 
+				// Запишем эти данные в файл, включая расчёт формулы на ПК и дельты между ПК и процессором
 				outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << abs(l_f_y_axis - *f_y_axis) << endl;
 
+				// Выдадим на форму данные о текущей работе процессора
 				emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7]);
 			}
 		}
 	}
 
+	// Закроем файл
 	outputplot->close();
+	// И безопасно удалим
 	outputplot->deleteLater();
+	// Закроем порт
 	Port1->close();
 }
 

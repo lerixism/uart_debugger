@@ -17,7 +17,7 @@ public slots:
 
 signals:
 	void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
-	void PortError(QString);
+	void ThrowError(QString);
 
 private:
 	QString comnum_str;
