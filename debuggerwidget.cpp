@@ -29,7 +29,7 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 	// Текстовый поток для управления строкой
 	QTextStream ts(&str);
 	// Запишем в поток содержимое
-	ts << tr("Time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt;
+	ts << tr("Running time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt;
 	// Условная индикация ошибки DSP
 	if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 	else ts << tr(".\n\nDSP error is absent.");
