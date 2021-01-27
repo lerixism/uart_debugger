@@ -64,7 +64,7 @@ void PortThread::run()
 	QFile * outputplot = new QFile(static_cast<QString>("out_" + curdatetime.toString("yyyy-MM-dd_HHmmss") + ".log"));
 
 	// Откроем файл для записи лога, если можно
-	if (outputplot->open(QIODevice::WriteOnly | QIODevice::Text))
+    if (!outputplot->open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		// Если нельзя, выдадим ошибку
 		emit ThrowError(outputplot->fileName() + ". " + outputplot->errorString());
