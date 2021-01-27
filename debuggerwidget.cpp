@@ -22,14 +22,14 @@ DebuggerWidget::~DebuggerWidget()
     delete ui;
 }
 
-void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt)
+void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis)
 {
 	// Сформируем строку для выдачи на форму
 	QString str;
 	// Текстовый поток для управления строкой
 	QTextStream ts(&str);
 	// Запишем в поток содержимое
-	ts << tr("Running time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt;
+    ts << tr("Running time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt << "\n\nX axis is " << f_x_axis;
 	// Условная индикация ошибки DSP
 	if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 	else ts << tr(".\n\nDSP error is absent.");
@@ -55,6 +55,8 @@ void DebuggerWidget::openBTN()
 	connect(portthread, &PortThread::ThrowError, this, &DebuggerWidget::HandleError);
 	// Передача номера порта с формы в поток
 	connect(this, &DebuggerWidget::SetComNumber, portthread, &PortThread::SetComNum);
+    // Обновление формы
+    connect(portthread, &PortThread::toForm, this, &DebuggerWidget::updateForm);
 
 	// Запуск потока (после выполнения exec выполняется run, перегруженная в PortThread)
 	portthread->start();

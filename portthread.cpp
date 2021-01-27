@@ -135,7 +135,7 @@ void PortThread::run()
 				outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << abs(l_f_y_axis - *f_y_axis) << endl;
 
 				// Выдадим на форму данные о текущей работе процессора
-				emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7]);
+                emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], *f_x_axis);
 			}
 		}
 	}

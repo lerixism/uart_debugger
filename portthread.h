@@ -16,7 +16,7 @@ public slots:
 	void SetComNum(QString);
 
 signals:
-	void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt);
+    void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis);
 	void ThrowError(QString);
 
 private:
