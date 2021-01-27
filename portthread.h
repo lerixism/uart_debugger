@@ -16,13 +16,14 @@ public slots:
     void Work();
 
 signals:
-    void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis);
+    void toForm(unsigned int, unsigned int, unsigned int, float, float);
 	void ThrowError(QString);
     void SafeStop();
 
 private:
 	QString comnum_str;
 	unsigned short CRC16(unsigned int *, unsigned short, unsigned short);
+    float max_delta;
 };
 
 #endif // PORTTHREAD_H

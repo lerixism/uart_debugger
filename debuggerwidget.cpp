@@ -22,7 +22,7 @@ DebuggerWidget::~DebuggerWidget()
     delete ui;
 }
 
-void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis)
+void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis, float delta)
 {
 	// Сформируем строку для выдачи на форму
 	QString str;
@@ -30,7 +30,9 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 	QTextStream ts(&str);
 	// Запишем в поток содержимое
     ts << tr("Running time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt << "\n\nX axis is " << f_x_axis;
-	// Условная индикация ошибки DSP
+
+    ts << "\n\nMaximum delta is " << delta;
+    // Условная индикация ошибки DSP
 	if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 	else ts << tr(".\n\nDSP error is absent.");
 

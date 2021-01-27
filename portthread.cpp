@@ -7,7 +7,7 @@
 
 PortThread::PortThread()
 {
-
+    max_delta = 0.0f;
 }
 
 unsigned short PortThread::CRC16(unsigned int * inp_Arr, unsigned short byte_length, unsigned short inp_crc)
@@ -131,11 +131,13 @@ void PortThread::Work()
 				float l_f_z_axis = -50.0f * *f_x_axis * *f_x_axis + *f_x_axis * *f_x_axis * *f_x_axis * *f_x_axis;
 				float l_f_y_axis = 30.0f * cosf(0.3f * l_f_z_axis) + 20.0f * sinf(3.0f * l_f_z_axis) - 0.005f * l_f_z_axis * l_f_z_axis;
 
+                float delta = abs(l_f_y_axis - *f_y_axis);
 				// Запишем эти данные в файл, включая расчёт формулы на ПК и дельты между ПК и процессором
-				outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << abs(l_f_y_axis - *f_y_axis) << endl;
+                outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << delta << endl;
 
+                if (max_delta < delta) max_delta = delta;
                 // Выдадим на форму данные о текущей работе процессора
-                emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], *f_x_axis);
+                emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], *f_x_axis, max_delta);
             }
         }
 	}

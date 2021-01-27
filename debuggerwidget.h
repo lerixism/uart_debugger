@@ -19,7 +19,7 @@ public:
     ~DebuggerWidget();
 
 public slots:
-    void updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis);
+    void updateForm(unsigned int, unsigned int, unsigned int, float, float);
 	void openBTN();
 	void closeBTN();
 	void HandleError(QString);
