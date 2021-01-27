@@ -125,8 +125,11 @@ void PortThread::run()
 				f_y_axis = reinterpret_cast<float*>(&ui_y_axis);
 
 				// Расчёт формулы по принятому значению абсциссы
-				// 	y = 4.0 * m.cos(x) + 0.5 * m.sin(10.0*x) - 0.005 * x**2 + 50.0 * m.atan(x)
-				float l_f_y_axis = 4.0f * cosf(*f_x_axis) + 0.5f * sinf(10.0f * *f_x_axis) - 0.005f * *f_x_axis * *f_x_axis;
+
+				// z = -50.0 * x ** 2 + x ** 4
+				// y = 30.0 * m.cos(0.3 * z) + 20.0 * m.sin(3.0*z) - 0.005 * z**2
+				float l_f_z_axis = -50.0f * *f_x_axis * *f_x_axis + *f_x_axis * *f_x_axis * *f_x_axis * *f_x_axis;
+				float l_f_y_axis = 30.0f * cosf(0.3f * l_f_z_axis) + 20.0f * sinf(3.0f * l_f_z_axis) - 0.005f * l_f_z_axis * l_f_z_axis;
 
 				// Запишем эти данные в файл, включая расчёт формулы на ПК и дельты между ПК и процессором
 				outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << abs(l_f_y_axis - *f_y_axis) << endl;
