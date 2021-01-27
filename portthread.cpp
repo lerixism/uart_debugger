@@ -40,7 +40,7 @@ void PortThread::SetComNum(QString comnumber)
 	comnum_str = comnumber;
 }
 
-void PortThread::run()
+void PortThread::Work()
 {
 	// Создадим порт
 	QSerialPort * Port1;
@@ -86,16 +86,16 @@ void PortThread::run()
 	while (!QThread::currentThread()->isInterruptionRequested())
 	{
 		// Ждём приёма данных
-		if (Port1->waitForReadyRead(-1))
+        if (Port1->waitForReadyRead(500))
 		{
 			// Чтение порта
 			// Если в порту меньше 24 байтов, не интересно, ждём пока больше придёт
 			if (Port1->bytesAvailable() < 24) continue;
 			// Считываем всё
-			read_arr = Port1->readAll();
+            read_arr = Port1->readAll();
 
-			// Перепишем данные в 4-байтный массив
-			unsigned int i_read_arr[32];
+            // Перепишем данные в 4-байтный массив
+            unsigned int i_read_arr[32];
 
 			// Начиная с крайнего возможного байта концовки ищем эту самую концовку (0x5a5a)
 			for (int byte_num = 17; byte_num < read_arr.size(); byte_num++)
@@ -112,15 +112,15 @@ void PortThread::run()
 			if (crc_in == crc_calc)
 			{
 				// Счётчик загруженности процессора
-				unsigned int freecpucnt = (i_read_arr[3] << 24) | (i_read_arr[4] << 16) | (i_read_arr[5] << 8) | i_read_arr[6];
+                unsigned int freecpucnt = (i_read_arr[3] << 24) | (i_read_arr[4] << 16) | (i_read_arr[5] << 8) | i_read_arr[6];
 
 				// Расчитанные значения проверочной формулы
 				// Целочисленные значения
-				unsigned int ui_x_axis = (i_read_arr[8] << 24) | (i_read_arr[9] << 16) | (i_read_arr[10] << 8) | i_read_arr[11];
-				unsigned int ui_y_axis = (i_read_arr[12] << 24) | (i_read_arr[13] << 16) | (i_read_arr[14] << 8) | i_read_arr[15];
+                unsigned int ui_x_axis = (i_read_arr[8] << 24) | (i_read_arr[9] << 16) | (i_read_arr[10] << 8) | i_read_arr[11];
+                unsigned int ui_y_axis = (i_read_arr[12] << 24) | (i_read_arr[13] << 16) | (i_read_arr[14] << 8) | i_read_arr[15];
 
-				// Для расшифровки нужно считать их как вещественные
-				float *f_x_axis, *f_y_axis;
+                // Для расшифровки нужно считать их как вещественные
+                float *f_x_axis, *f_y_axis;
 				f_x_axis = reinterpret_cast<float*>(&ui_x_axis);
 				f_y_axis = reinterpret_cast<float*>(&ui_y_axis);
 
@@ -134,17 +134,19 @@ void PortThread::run()
 				// Запишем эти данные в файл, включая расчёт формулы на ПК и дельты между ПК и процессором
 				outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << abs(l_f_y_axis - *f_y_axis) << endl;
 
-				// Выдадим на форму данные о текущей работе процессора
+                // Выдадим на форму данные о текущей работе процессора
                 emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], *f_x_axis);
-			}
-		}
+            }
+        }
 	}
 
 	// Закроем файл
 	outputplot->close();
-	// И безопасно удалим
-	outputplot->deleteLater();
+    // И удалим
+    delete outputplot;
 	// Закроем порт
-	Port1->close();
+    Port1->close();
+
+    emit SafeStop();
 }
 

@@ -37,49 +37,58 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 	ui->outputText->setText(str);
 }
 
+void DebuggerWidget::StopThreading()
+{
+    main_thread->quit();
+    main_thread->wait();
+    main_thread->deleteLater();
+
+    // Деактивируем кнопку Открыть
+    ui->OPNButton->setEnabled(true);
+    // Активируем кнопку Закрыть
+    ui->CLSButton->setEnabled(false);
+    // Деактивируем поле для номера порта
+    ui->comNUM->setEnabled(true);
+}
+
 void DebuggerWidget::openBTN()
 {
-	// Деактивируем кнопку Открыть
-	ui->OPNButton->setEnabled(false);
-	// Активируем кнопку Закрыть
-	ui->CLSButton->setEnabled(true);
-	// Деактивируем поле для номера порта
-	ui->comNUM->setEnabled(false);
-
+    main_thread = new QThread();
 	// Создадим объект потока
 	portthread = new PortThread();
+    portthread->moveToThread(main_thread);
 
+    // Свяжем начало работы потока с работой рабочего
+    connect(main_thread, &QThread::started, portthread, &PortThread::Work);
 	// Окончание работы потока должно приводить к уничтожению объекта потока
-	connect(portthread, &QThread::finished, portthread, &QThread::deleteLater);
+    connect(main_thread, &QThread::finished, portthread, &QThread::deleteLater);
 	// Обработчик ошибок от потока
 	connect(portthread, &PortThread::ThrowError, this, &DebuggerWidget::HandleError);
 	// Передача номера порта с формы в поток
-	connect(this, &DebuggerWidget::SetComNumber, portthread, &PortThread::SetComNum);
+    connect(this, &DebuggerWidget::SetComNumber, portthread, &PortThread::SetComNum, Qt::DirectConnection);
     // Обновление формы
     connect(portthread, &PortThread::toForm, this, &DebuggerWidget::updateForm);
+    // Безопасная остановка потока
+    connect(portthread, &PortThread::SafeStop, this, &DebuggerWidget::StopThreading);
 
 	// Запуск потока (после выполнения exec выполняется run, перегруженная в PortThread)
-	portthread->start();
+    main_thread->start();
 
 	// Поток запустили - можно сообщить ему выбранный номер порта
 	emit SetComNumber(ui->comNUM->text());
+
+    // Деактивируем кнопку Открыть
+    ui->OPNButton->setEnabled(false);
+    // Активируем кнопку Закрыть
+    ui->CLSButton->setEnabled(true);
+    // Деактивируем поле для номера порта
+    ui->comNUM->setEnabled(false);
 }
 
 void DebuggerWidget::closeBTN()
 {
-	// Активируем кнопку Открыть
-	ui->OPNButton->setEnabled(true);
-	// Деактивируем кнопку Закрыть
-	ui->CLSButton->setEnabled(false);
-	// Активируем поле для номера порта
-	ui->comNUM->setEnabled(true);
-
 	// Остановим поток прерыванием (оно не снимается, поэтому поток придётся уничтожить)
-	portthread->requestInterruption();
-	// Уничтожаем поток (deleteLater(), чтобы он успел доработать)
-	portthread->deleteLater();
-	// На всякий случай ждём пока он закончит работу
-	portthread->wait();
+    main_thread->requestInterruption();
 }
 
 void DebuggerWidget::HandleError(QString errorstr)

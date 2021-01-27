@@ -23,12 +23,14 @@ public slots:
 	void openBTN();
 	void closeBTN();
 	void HandleError(QString);
+    void StopThreading();
 
 signals:
 	void SetComNumber(QString);
 
 private:
 	Ui::DebuggerWidget *ui;
+    QThread * main_thread;
 	PortThread *portthread;
 };
 

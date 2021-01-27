@@ -4,20 +4,21 @@
 #include <QObject>
 #include <QThread>
 
-class PortThread : public QThread
+class PortThread : public QObject
 {
 	Q_OBJECT
 
-	void run() override;
 public:
 	PortThread();
 
 public slots:
 	void SetComNum(QString);
+    void Work();
 
 signals:
     void toForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis);
 	void ThrowError(QString);
+    void SafeStop();
 
 private:
 	QString comnum_str;
