@@ -86,7 +86,7 @@ void PortThread::Work()
 	while (!QThread::currentThread()->isInterruptionRequested())
 	{
 		// Ждём приёма данных
-        if (Port1->waitForReadyRead(500))
+        if (Port1->waitForReadyRead(100))
 		{
 			// Чтение порта
 			// Если в порту меньше 24 байтов, не интересно, ждём пока больше придёт
