@@ -33,8 +33,7 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 
     ts << "\n\nMaximum delta is " << delta;
     // Условная индикация ошибки DSP
-	if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
-	else ts << tr(".\n\nDSP error is absent.");
+    if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 
 	ui->outputText->setText(str);
 }
