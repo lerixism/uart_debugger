@@ -28,14 +28,22 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 	QString str;
 	// Текстовый поток для управления строкой
 	QTextStream ts(&str);
+    ts << second;
+    // Отобразим время
+    ui->lcdTime->display(str);
+    str.clear();
+
 	// Запишем в поток содержимое
-    ts << tr("Running time is ") << second << tr(" seconds.\n\nFreeCPU is ") << freecpucnt << "\n\nX axis is " << f_x_axis;
+    ts << tr("FreeCPU is ") << freecpucnt << "\n\nX axis is " << f_x_axis;
 
     ts << "\n\nMaximum delta is " << delta;
     // Условная индикация ошибки DSP
     if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 
 	ui->outputText->setText(str);
+
+    // Если прошло 8 секунд по меркам процессора, проверим есть ли запрос на автоостановку
+    if (ui->checkAutostop->isChecked() && (f_x_axis > 8.0f)) closeBTN();
 }
 
 void DebuggerWidget::StopThreading()
@@ -50,6 +58,8 @@ void DebuggerWidget::StopThreading()
     ui->CLSButton->setEnabled(false);
     // Деактивируем поле для номера порта
     ui->comNUM->setEnabled(true);
+    // Активируем выбор автоостановки
+    ui->checkAutostop->setEnabled(true);
 }
 
 void DebuggerWidget::openBTN()
@@ -84,6 +94,8 @@ void DebuggerWidget::openBTN()
     ui->CLSButton->setEnabled(true);
     // Деактивируем поле для номера порта
     ui->comNUM->setEnabled(false);
+    // Активируем выбор автоостановки
+    ui->checkAutostop->setEnabled(false);
 }
 
 void DebuggerWidget::closeBTN()
