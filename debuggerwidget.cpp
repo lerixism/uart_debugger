@@ -42,7 +42,7 @@ void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, un
 
 	ui->outputText->setText(str);
 
-    // ≈сли прошло 8 секунд по меркам процессора, проверим есть ли запрос на автоостановку
+    // ≈сли значение абсциссы достигло 8.0, проверим есть ли запрос на автоостановку
     if (ui->checkAutostop->isChecked() && (f_x_axis > 8.0f)) closeBTN();
 }
 
