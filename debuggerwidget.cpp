@@ -6,14 +6,14 @@ DebuggerWidget::DebuggerWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DebuggerWidget)
 {
-	// Запуск интерфейса
+	// Р—Р°РїСѓСЃРє РёРЅС‚РµСЂС„РµР№СЃР°
     ui->setupUi(this);
 
-	// Обработка нажатия кнопок Открыть - Закрыть
+	// РћР±СЂР°Р±РѕС‚РєР° РЅР°Р¶Р°С‚РёСЏ РєРЅРѕРїРѕРє РћС‚РєСЂС‹С‚СЊ - Р—Р°РєСЂС‹С‚СЊ
 	connect(ui->OPNButton, &QPushButton::clicked, this, &DebuggerWidget::openBTN);
 	connect(ui->CLSButton, &QPushButton::clicked, this, &DebuggerWidget::closeBTN);
 
-	// Деактивируем кнопку Закрыть
+	// Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ Р—Р°РєСЂС‹С‚СЊ
 	ui->CLSButton->setEnabled(false);
 }
 
@@ -24,25 +24,25 @@ DebuggerWidget::~DebuggerWidget()
 
 void DebuggerWidget::updateForm(unsigned int second, unsigned int freecpucnt, unsigned int DSPerrcnt, float f_x_axis, float delta)
 {
-	// Сформируем строку для выдачи на форму
+	// РЎС„РѕСЂРјРёСЂСѓРµРј СЃС‚СЂРѕРєСѓ РґР»СЏ РІС‹РґР°С‡Рё РЅР° С„РѕСЂРјСѓ
 	QString str;
-	// Текстовый поток для управления строкой
+	// РўРµРєСЃС‚РѕРІС‹Р№ РїРѕС‚РѕРє РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ СЃС‚СЂРѕРєРѕР№
 	QTextStream ts(&str);
     ts << second;
-    // Отобразим время
+    // РћС‚РѕР±СЂР°Р·РёРј РІСЂРµРјСЏ
     ui->lcdTime->display(str);
     str.clear();
 
-	// Запишем в поток содержимое
+	// Р—Р°РїРёС€РµРј РІ РїРѕС‚РѕРє СЃРѕРґРµСЂР¶РёРјРѕРµ
     ts << tr("FreeCPU is ") << freecpucnt << "\n\nX axis is " << f_x_axis;
 
     ts << "\n\nMaximum delta is " << delta;
-    // Условная индикация ошибки DSP
+    // РЈСЃР»РѕРІРЅР°СЏ РёРЅРґРёРєР°С†РёСЏ РѕС€РёР±РєРё DSP
     if (DSPerrcnt) ts << tr(".\n\nDSP error is present.");
 
 	ui->outputText->setText(str);
 
-    // Если значение абсциссы достигло 8.0, проверим есть ли запрос на автоостановку
+    // Р•СЃР»Рё Р·РЅР°С‡РµРЅРёРµ Р°Р±СЃС†РёСЃСЃС‹ РґРѕСЃС‚РёРіР»Рѕ 8.0, РїСЂРѕРІРµСЂРёРј РµСЃС‚СЊ Р»Рё Р·Р°РїСЂРѕСЃ РЅР° Р°РІС‚РѕРѕСЃС‚Р°РЅРѕРІРєСѓ
     if (ui->checkAutostop->isChecked() && (f_x_axis > 8.0f)) closeBTN();
 }
 
@@ -52,73 +52,73 @@ void DebuggerWidget::StopThreading()
     main_thread->wait();
     main_thread->deleteLater();
 
-    // Деактивируем кнопку Открыть
+    // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ РћС‚РєСЂС‹С‚СЊ
     ui->OPNButton->setEnabled(true);
-    // Активируем кнопку Закрыть
+    // РђРєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ Р—Р°РєСЂС‹С‚СЊ
     ui->CLSButton->setEnabled(false);
-    // Деактивируем поле для номера порта
+    // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РїРѕР»Рµ РґР»СЏ РЅРѕРјРµСЂР° РїРѕСЂС‚Р°
     ui->comNUM->setEnabled(true);
-    // Активируем выбор автоостановки
+    // РђРєС‚РёРІРёСЂСѓРµРј РІС‹Р±РѕСЂ Р°РІС‚РѕРѕСЃС‚Р°РЅРѕРІРєРё
     ui->checkAutostop->setEnabled(true);
 }
 
 void DebuggerWidget::openBTN()
 {
     main_thread = new QThread();
-	// Создадим объект потока
+	// РЎРѕР·РґР°РґРёРј РѕР±СЉРµРєС‚ РїРѕС‚РѕРєР°
 	portthread = new PortThread();
     portthread->moveToThread(main_thread);
 
-    // Свяжем начало работы потока с работой рабочего
+    // РЎРІСЏР¶РµРј РЅР°С‡Р°Р»Рѕ СЂР°Р±РѕС‚С‹ РїРѕС‚РѕРєР° СЃ СЂР°Р±РѕС‚РѕР№ СЂР°Р±РѕС‡РµРіРѕ
     connect(main_thread, &QThread::started, portthread, &PortThread::Work);
-	// Окончание работы потока должно приводить к уничтожению объекта потока
+	// РћРєРѕРЅС‡Р°РЅРёРµ СЂР°Р±РѕС‚С‹ РїРѕС‚РѕРєР° РґРѕР»Р¶РЅРѕ РїСЂРёРІРѕРґРёС‚СЊ Рє СѓРЅРёС‡С‚РѕР¶РµРЅРёСЋ РѕР±СЉРµРєС‚Р° РїРѕС‚РѕРєР°
     connect(main_thread, &QThread::finished, portthread, &QThread::deleteLater);
-	// Обработчик ошибок от потока
+	// РћР±СЂР°Р±РѕС‚С‡РёРє РѕС€РёР±РѕРє РѕС‚ РїРѕС‚РѕРєР°
 	connect(portthread, &PortThread::ThrowError, this, &DebuggerWidget::HandleError);
-	// Передача номера порта с формы в поток
+	// РџРµСЂРµРґР°С‡Р° РЅРѕРјРµСЂР° РїРѕСЂС‚Р° СЃ С„РѕСЂРјС‹ РІ РїРѕС‚РѕРє
     connect(this, &DebuggerWidget::SetComNumber, portthread, &PortThread::SetComNum, Qt::DirectConnection);
-    // Обновление формы
+    // РћР±РЅРѕРІР»РµРЅРёРµ С„РѕСЂРјС‹
     connect(portthread, &PortThread::toForm, this, &DebuggerWidget::updateForm);
-    // Безопасная остановка потока
+    // Р‘РµР·РѕРїР°СЃРЅР°СЏ РѕСЃС‚Р°РЅРѕРІРєР° РїРѕС‚РѕРєР°
     connect(portthread, &PortThread::SafeStop, this, &DebuggerWidget::StopThreading);
 
-	// Запуск потока (после выполнения exec выполняется run, перегруженная в PortThread)
+	// Р—Р°РїСѓСЃРє РїРѕС‚РѕРєР° (РїРѕСЃР»Рµ РІС‹РїРѕР»РЅРµРЅРёСЏ exec РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ run, РїРµСЂРµРіСЂСѓР¶РµРЅРЅР°СЏ РІ PortThread)
     main_thread->start();
 
-	// Поток запустили - можно сообщить ему выбранный номер порта
+	// РџРѕС‚РѕРє Р·Р°РїСѓСЃС‚РёР»Рё - РјРѕР¶РЅРѕ СЃРѕРѕР±С‰РёС‚СЊ РµРјСѓ РІС‹Р±СЂР°РЅРЅС‹Р№ РЅРѕРјРµСЂ РїРѕСЂС‚Р°
 	emit SetComNumber(ui->comNUM->text());
 
-    // Деактивируем кнопку Открыть
+    // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ РћС‚РєСЂС‹С‚СЊ
     ui->OPNButton->setEnabled(false);
-    // Активируем кнопку Закрыть
+    // РђРєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ Р—Р°РєСЂС‹С‚СЊ
     ui->CLSButton->setEnabled(true);
-    // Деактивируем поле для номера порта
+    // Р”РµР°РєС‚РёРІРёСЂСѓРµРј РїРѕР»Рµ РґР»СЏ РЅРѕРјРµСЂР° РїРѕСЂС‚Р°
     ui->comNUM->setEnabled(false);
-    // Активируем выбор автоостановки
+    // РђРєС‚РёРІРёСЂСѓРµРј РІС‹Р±РѕСЂ Р°РІС‚РѕРѕСЃС‚Р°РЅРѕРІРєРё
     ui->checkAutostop->setEnabled(false);
 }
 
 void DebuggerWidget::closeBTN()
 {
-	// Остановим поток прерыванием (оно не снимается, поэтому поток придётся уничтожить)
+	// РћСЃС‚Р°РЅРѕРІРёРј РїРѕС‚РѕРє РїСЂРµСЂС‹РІР°РЅРёРµРј (РѕРЅРѕ РЅРµ СЃРЅРёРјР°РµС‚СЃСЏ, РїРѕСЌС‚РѕРјСѓ РїРѕС‚РѕРє РїСЂРёРґС‘С‚СЃСЏ СѓРЅРёС‡С‚РѕР¶РёС‚СЊ)
     main_thread->requestInterruption();
 }
 
 void DebuggerWidget::HandleError(QString errorstr)
 {
-	// Активируем кнопку Открыть
+	// РђРєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ РћС‚РєСЂС‹С‚СЊ
 	ui->OPNButton->setEnabled(true);
-	// Деактивируем кнопку Закрыть
+	// Р”РµР°РєС‚РёРІРёСЂСѓРµРј РєРЅРѕРїРєСѓ Р—Р°РєСЂС‹С‚СЊ
 	ui->CLSButton->setEnabled(false);
-	// Активируем поле для номера порта
+	// РђРєС‚РёРІРёСЂСѓРµРј РїРѕР»Рµ РґР»СЏ РЅРѕРјРµСЂР° РїРѕСЂС‚Р°
 	ui->comNUM->setEnabled(true);
 
-	// Для уведомления пользователя нужно окно сообщений
+	// Р”Р»СЏ СѓРІРµРґРѕРјР»РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РЅСѓР¶РЅРѕ РѕРєРЅРѕ СЃРѕРѕР±С‰РµРЅРёР№
 	QMessageBox msgBox;
-	// Текст ошибки
+	// РўРµРєСЃС‚ РѕС€РёР±РєРё
 	msgBox.setText(tr("Error: ") + errorstr);
-	// Иконка сообщения - критичное (красный восклицательный знак)
+	// РРєРѕРЅРєР° СЃРѕРѕР±С‰РµРЅРёСЏ - РєСЂРёС‚РёС‡РЅРѕРµ (РєСЂР°СЃРЅС‹Р№ РІРѕСЃРєР»РёС†Р°С‚РµР»СЊРЅС‹Р№ Р·РЅР°Рє)
 	msgBox.setIcon(QMessageBox::Critical);
-	// Покажем окно пользователю
+	// РџРѕРєР°Р¶РµРј РѕРєРЅРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЋ
 	msgBox.exec();
 }
