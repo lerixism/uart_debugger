@@ -116,28 +116,20 @@ void PortThread::Work()
 
 				// Расчитанные значения проверочной формулы
 				// Целочисленные значения
-                unsigned int ui_x_axis = (i_read_arr[8] << 24) | (i_read_arr[9] << 16) | (i_read_arr[10] << 8) | i_read_arr[11];
-                unsigned int ui_y_axis = (i_read_arr[12] << 24) | (i_read_arr[13] << 16) | (i_read_arr[14] << 8) | i_read_arr[15];
-
-                // Для расшифровки нужно считать их как вещественные
-                float *f_x_axis, *f_y_axis;
-				f_x_axis = reinterpret_cast<float*>(&ui_x_axis);
-				f_y_axis = reinterpret_cast<float*>(&ui_y_axis);
+				x_axis.ui32 = (i_read_arr[8] << 24) | (i_read_arr[9] << 16) | (i_read_arr[10] << 8) | i_read_arr[11];
+				y_axis.ui32 = (i_read_arr[12] << 24) | (i_read_arr[13] << 16) | (i_read_arr[14] << 8) | i_read_arr[15];
 
 				// Расчёт формулы по принятому значению абсциссы
-
-				// z = -50.0 * x ** 2 + x ** 4
-				// y = 30.0 * m.cos(0.3 * z) + 20.0 * m.sin(3.0*z) - 0.005 * z**2
-				float l_f_z_axis = -50.0f * *f_x_axis * *f_x_axis + *f_x_axis * *f_x_axis * *f_x_axis * *f_x_axis;
+				float l_f_z_axis = -50.0f * x_axis.f32 * x_axis.f32 + x_axis.f32 * x_axis.f32 * x_axis.f32 * x_axis.f32;
 				float l_f_y_axis = 30.0f * cosf(0.3f * l_f_z_axis) + 20.0f * sinf(3.0f * l_f_z_axis) - 0.005f * l_f_z_axis * l_f_z_axis;
 
-                float delta = abs(l_f_y_axis - *f_y_axis);
+				float delta = abs(l_f_y_axis - y_axis.f32);
 				// Запишем эти данные в файл, включая расчёт формулы на ПК и дельты между ПК и процессором
-                outputplot_ts << *f_x_axis << "\t" << *f_y_axis << "\t" << l_f_y_axis << "\t" << delta << endl;
+				outputplot_ts << x_axis.f32 << "\t" << y_axis.f32 << "\t" << l_f_y_axis << "\t" << delta << endl;
 
                 if (max_delta < delta) max_delta = delta;
                 // Выдадим на форму данные о текущей работе процессора
-                emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], *f_x_axis, max_delta);
+				emit toForm(i_read_arr[2], freecpucnt, i_read_arr[7], x_axis.f32, max_delta);
             }
         }
 	}
