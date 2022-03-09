@@ -82,7 +82,7 @@ void DebuggerWidget::openBTN()
     // Безопасная остановка потока
     connect(portthread, &PortThread::SafeStop, this, &DebuggerWidget::StopThreading);
 
-	// Запуск потока (после выполнения exec выполняется run, перегруженная в PortThread)
+	// Запуск потока
     main_thread->start();
 
 	// Поток запустили - можно сообщить ему выбранный номер порта
